@@ -1,0 +1,73 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Rfp {
+  id           Int              @id @default(autoincrement())
+  title        String
+  description  String
+  budget       Float?
+  deliveryDays Int?
+  paymentTerms String?
+  warranty     String?
+  createdAt    DateTime         @default(now())
+
+  items        RfpItem[]
+  proposals    Proposal[]
+  responses    VendorResponse[]
+}
+
+model RfpItem {
+  id       Int    @id @default(autoincrement())
+  rfp      Rfp    @relation(fields: [rfpId], references: [id])
+  rfpId    Int
+  name     String
+  quantity Int
+  details  String?
+}
+
+model Vendor {
+  id        Int              @id @default(autoincrement())
+  name      String
+  email     String           @unique
+  createdAt DateTime         @default(now())
+
+  proposals Proposal[]
+  responses VendorResponse[]
+}
+
+model Proposal {
+  id           Int      @id @default(autoincrement())
+  rfpId        Int
+  vendorId     Int
+  rawEmailBody String
+  totalPrice   Float?
+  deliveryDays Int?
+  warranty     String?
+  score        Float?
+  aiSummary    String?
+  createdAt    DateTime @default(now())
+
+  rfp    Rfp    @relation(fields: [rfpId], references: [id])
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+}
+
+model VendorResponse {
+  id           Int      @id @default(autoincrement())
+  rfpId        Int
+  vendorId     Int
+  message      String
+  price        Float?
+  deliveryDays Int?
+  warranty     String?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+  rfp    Rfp    @relation(fields: [rfpId], references: [id])
+}
